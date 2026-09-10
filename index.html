@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>HUT'S BRAIN</title>
+  <style>
+    :root {
+      --bg: #05070a;
+      --panel: rgba(8, 16, 22, 0.9);
+      --line: rgba(80, 255, 210, 0.28);
+      --cyan: #5cffd2;
+      --dim: #8a9aa3;
+      --text: #d7ece6;
+      --warn: #ffb020;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    }
+    body {
+      padding: 12px;
+      background-image: repeating-linear-gradient(
+        to bottom, transparent 0 2px, rgba(0,0,0,.16) 2px 3px
+      );
+    }
+    .wrap { max-width: 920px; margin: 0 auto; display: grid; gap: 12px; }
+    header, .panel {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      padding: 12px 14px;
+    }
+    header { display: flex; justify-content: space-between; gap: 12px; align-items: end; }
+    .title { letter-spacing: .2em; font-size: 11px; color: var(--cyan); }
+    .title b { display: block; font-size: 22px; letter-spacing: .16em; color: #edfff8; }
+    .meta { font-size: 11px; color: var(--dim); text-align: right; line-height: 1.5; }
+    h2 { color: var(--cyan); font-size: 11px; letter-spacing: .16em; margin-bottom: 10px; }
+    .stat { display: flex; justify-content: space-between; gap: 10px; padding: 6px 0;
+      border-bottom: 1px solid rgba(80,255,210,.12); font-size: 12px; }
+    .stat span { color: var(--dim); }
+    .vault-stage {
+      position: relative;
+      min-height: 320px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      background: radial-gradient(circle at center, rgba(92,255,210,.08), transparent 46%), #071016;
+      overflow: hidden;
+    }
+    .caption-top, .caption-bottom {
+      position: absolute; left: 0; right: 0; text-align: center;
+      font-size: 10px; letter-spacing: .16em; color: var(--dim); padding: 0 10px;
+    }
+    .caption-top { top: 12px; }
+    .caption-bottom { bottom: 12px; color: var(--cyan); }
+    .vault {
+      width: min(72vw, 420px); aspect-ratio: 1; border-radius: 50%;
+      border: 1px dashed rgba(92,255,210,.35);
+      display: grid; place-items: center; position: relative;
+      box-shadow: 0 0 40px rgba(92,255,210,.08), inset 0 0 50px rgba(92,255,210,.05);
+    }
+    .vault::after {
+      content: ""; position: absolute; inset: 18px; border-radius: 50%;
+      border: 1px solid rgba(92,255,210,.12);
+    }
+    .arm {
+      position: absolute; inset: 0; border-radius: 50%; pointer-events: none;
+      background: conic-gradient(from 0deg, transparent 0 78%, rgba(92,255,210,.28) 86%, transparent 92%);
+      animation: spin 4.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    /* 56px hit target around a ~28px organ */
+    #pea {
+      width: 56px; height: 56px; border: 0; background: transparent; cursor: pointer;
+      display: grid; place-items: center; position: relative; z-index: 2;
+    }
+    #pea svg { width: 28px; height: 22px; filter: drop-shadow(0 0 8px rgba(255,176,32,.45)); }
+    #pea.fired { animation: kick .35s ease; }
+    @keyframes kick {
+      0% { transform: scale(1); }
+      35% { transform: scale(1.28); filter: brightness(1.4); }
+      100% { transform: scale(1); }
+    }
+    .sparks { position: absolute; width: 90px; height: 90px; pointer-events: none; }
+    .sparks span {
+      position: absolute; width: 5px; height: 5px; border-radius: 50%;
+      background: var(--cyan); opacity: .35;
+      animation: blink 1.8s ease-in-out infinite;
+    }
+    .sparks.burst span { opacity: 1; background: #ffe08a; animation-duration: .28s; }
+    @keyframes blink { 50% { opacity: .15; transform: scale(.7); } }
+    .sparks span:nth-child(1) { top: 8px; left: 42px; }
+    .sparks span:nth-child(2) { top: 22px; left: 14px; animation-delay: .2s; }
+    .sparks span:nth-child(3) { top: 22px; right: 14px; animation-delay: .4s; }
+    .sparks span:nth-child(4) { bottom: 18px; left: 22px; animation-delay: .1s; }
+    .sparks span:nth-child(5) { bottom: 18px; right: 22px; animation-delay: .3s; }
+    .sparks span:nth-child(6) { top: 40px; left: 6px; animation-delay: .5s; }
+    .wave { display: flex; align-items: flex-end; gap: 4px; height: 64px; margin-top: 8px; }
+    .wave i {
+      flex: 1; display: block; background: var(--cyan); opacity: .55;
+      animation: bar 1.2s ease-in-out infinite;
+    }
+    .wave.hot i { background: var(--warn); animation-duration: .28s; opacity: .95; }
+    @keyframes bar { 50% { transform: scaleY(.35); } }
+    .log { font-size: 11px; line-height: 1.65; color: #b7c9c3; min-height: 4.8em; margin-top: 8px; }
+    footer { font-size: 10px; color: var(--dim); letter-spacing: .08em; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="title">NEURAL OBSERVATORY<b>HUT'S BRAIN</b></div>
+      <div class="meta">SUBJECT // HUT<br />SCAN ID // HUT-031<br /><span id="clock"></span></div>
+    </header>
+
+    <section class="panel">
+      <h2>SPECIMEN READOUT</h2>
+      <div class="stat"><span>Designation</span><b>HUT</b></div>
+      <div class="stat"><span>Organ</span><b>Brain</b></div>
+      <div class="stat"><span>Firing rate</span><b id="rate">12 Hz</b></div>
+      <div class="stat"><span>Amplitude</span><b id="amp">0.18</b></div>
+      <div class="stat"><span>Pathways</span><b id="paths">5 active</b></div>
+      <div class="stat"><span>Status</span><b id="status">IDLE</b></div>
+    </section>
+
+    <section class="vault-stage">
+      <div class="caption-top">CRANIAL VAULT SCAN RING</div>
+      <div class="vault">
+        <div class="arm"></div>
+        <div class="sparks" id="sparks">
+          <span></span><span></span><span></span><span></span><span></span><span></span>
+        </div>
+        <button id="pea" type="button" aria-label="Stimulate organ">
+          <svg viewBox="0 0 64 48" aria-hidden="true">
+            <ellipse cx="32" cy="26" rx="20" ry="15" fill="#d9a07a" stroke="#ffd7b0" stroke-width="1.2"/>
+            <path d="M16 24 C22 10, 42 10, 48 24" fill="#e8b492" />
+            <path d="M20 22 C26 16, 30 28, 24 30 M32 14 C34 22, 38 20, 40 16 M28 26 C34 24, 36 32, 30 34"
+                  fill="none" stroke="#8a5a40" stroke-width="1.1"/>
+            <circle cx="24" cy="25" r="1.2" fill="#5cffd2"/>
+            <circle cx="36" cy="22" r="1.2" fill="#5cffd2"/>
+            <circle cx="31" cy="30" r="1.2" fill="#ffb020"/>
+          </svg>
+        </button>
+      </div>
+      <div class="caption-bottom">TAP ORGAN TO STIMULATE · OR PRESS F</div>
+    </section>
+
+    <section class="panel">
+      <h2>LIVE PATHWAY ACTIVITY</h2>
+      <div class="wave" id="wave">
+        <i style="height:30%"></i><i style="height:55%;animation-delay:.1s"></i>
+        <i style="height:40%;animation-delay:.2s"></i><i style="height:70%;animation-delay:.15s"></i>
+        <i style="height:35%;animation-delay:.25s"></i><i style="height:60%;animation-delay:.05s"></i>
+        <i style="height:45%;animation-delay:.3s"></i><i style="height:25%;animation-delay:.18s"></i>
+      </div>
+      <div class="log" id="log">idle scan<br />pathways stable<br />awaiting stimulus</div>
+    </section>
+
+    <footer>SCHEMATIC VISUALIZATION — NOT A MEDICAL RECORD</footer>
+  </div>
+
+  <script>
+    const pea = document.getElementById("pea");
+    const sparks = document.getElementById("sparks");
+    const wave = document.getElementById("wave");
+    const rate = document.getElementById("rate");
+    const amp = document.getElementById("amp");
+    const status = document.getElementById("status");
+    const log = document.getElementById("log");
+    const clock = document.getElementById("clock");
+    let locked = false;
+
+    function tickClock() {
+      if (clock) clock.textContent = new Date().toLocaleTimeString();
+    }
+    tickClock();
+    setInterval(tickClock, 1000);
+    setInterval(function () {
+      if (locked) return;
+      rate.textContent = (8 + Math.floor(Math.random() * 11)) + " Hz";
+      amp.textContent = (0.12 + Math.random() * 0.1).toFixed(2);
+    }, 1100);
+
+    function stimulate() {
+      if (locked) return;
+      locked = true;
+      pea.classList.add("fired");
+      sparks.classList.add("burst");
+      wave.classList.add("hot");
+      status.textContent = "STIMULUS";
+      rate.textContent = (40 + Math.floor(Math.random() * 33)) + " Hz";
+      amp.textContent = (0.72 + Math.random() * 0.22).toFixed(2);
+      log.innerHTML += "<br />stimulus applied · pathways discharging";
+      setTimeout(function () {
+        pea.classList.remove("fired");
+        sparks.classList.remove("burst");
+        wave.classList.remove("hot");
+        status.textContent = "IDLE";
+        locked = false;
+      }, 900);
+    }
+
+    pea.addEventListener("pointerdown", function (e) {
+      e.preventDefault();
+      stimulate();
+    });
+    window.addEventListener("keydown", function (e) {
+      if (e.key === "f" || e.key === "F") stimulate();
+    });
+  </script>
+</body>
+</html>
